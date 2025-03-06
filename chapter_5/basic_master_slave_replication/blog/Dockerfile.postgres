@@ -1,0 +1,39 @@
+FROM postgres:17
+
+# Установка необходимых пакетов
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-etcd \
+    python3-psycopg2 \
+    && rm -rf /var/lib/apt/lists/*
+
+
+# Установка Patroni
+RUN pip3 install patroni[etcd]  --upgrade setuptools --break-system-packages
+
+# Создание директории для скриптов
+RUN mkdir -p /scripts
+
+# Создание директории для конфигурации
+RUN mkdir -p /etc/patroni && chown postgres:postgres /etc/patroni
+
+# Копирование скрипта запуска
+COPY patroni-entrypoint.sh /scripts/patroni-entrypoint.sh
+RUN chmod +x /scripts/patroni-entrypoint.sh
+
+# Копирование конфигурационных файлов
+COPY patroni-1.yml /etc/patroni/patroni-postgres-1.yml
+COPY patroni-2.yml /etc/patroni/patroni-postgres-2.yml
+COPY patroni-3.yml /etc/patroni/patroni-postgres-3.yml
+RUN chown postgres:postgres /etc/patroni/patroni-postgres-*.yml
+
+RUN chmod 0700 /var/lib/postgresql/data
+RUN chown -R postgres:postgres /var/lib/postgresql/data
+
+# Установка рабочей директории
+WORKDIR /var/lib/postgresql
+
+USER postgres
+
+# Точка входа
+ENTRYPOINT ["/scripts/patroni-entrypoint.sh"]

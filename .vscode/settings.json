@@ -13,7 +13,7 @@
         {
             "previewLimit": 50,
             "server": "localhost",
-            "port": 5433,
+            "port": 5434,
             "driver": "PostgreSQL",
             "name": "slave",
             "database": "blogdb",
