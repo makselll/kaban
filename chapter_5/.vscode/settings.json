@@ -1,0 +1,34 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "master",
+            "database": "blogdb",
+            "username": "bloguser",
+            "password": "blogpass"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5433,
+            "driver": "PostgreSQL",
+            "name": "slave_1",
+            "database": "blogdb",
+            "username": "bloguser",
+            "password": "blogpass"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5434,
+            "driver": "PostgreSQL",
+            "name": "slave_2",
+            "database": "blogdb",
+            "username": "bloguser",
+            "password": "blogpass"
+        }
+    ]
+}
