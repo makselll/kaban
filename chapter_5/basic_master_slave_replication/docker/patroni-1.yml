@@ -10,6 +10,12 @@ etcd:
   host: etcd:2379
 
 bootstrap:
+  initdb_scripts:
+    create_bloguser: |
+      CREATE ROLE bloguser WITH LOGIN PASSWORD 'blogpass' CREATEDB CREATEROLE;
+    create_blogdb: |
+      CREATE DATABASE blogdb OWNER bloguser;
+      
   dcs:
     ttl: 30
     loop_wait: 10
@@ -65,6 +71,7 @@ postgresql:
     admin:
       username: admin
       password: admin
+
 tags:
   nofailover: false
   noloadbalance: false
