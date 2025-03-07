@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   web:
+    container_name: web
     build: 
       context: ../
       dockerfile: docker/Dockerfile
@@ -16,12 +17,13 @@ services:
       - postgres-3
     environment:
       DJANGO_SETTINGS_MODULE: settings
-      DB_HOST: postgres-1
+      DB_HOST: haproxy
       POSTGRES_DB: blogdb
       POSTGRES_USER: bloguser
       POSTGRES_PASSWORD: blogpass
 
   postgres-1:
+    container_name: postgres-1
     build:
       context: .
       dockerfile: Dockerfile.postgres
@@ -44,12 +46,13 @@ services:
     volumes:
       - postgres_1_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5435:5432"
       - "8008:8008"
     depends_on:
       - etcd
 
   postgres-2:
+    container_name: postgres-2
     build:
       context: .
       dockerfile: Dockerfile.postgres
@@ -78,6 +81,7 @@ services:
       - etcd
 
   postgres-3:
+    container_name: postgres-3
     build:
       context: .
       dockerfile: Dockerfile.postgres
@@ -117,6 +121,19 @@ services:
       - "2379:2379"
     volumes:
       - etcd_data:/bitnami/etcd
+
+  haproxy:
+    container_name: haproxy
+    user: root
+    image: haproxy:latest
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    ports:
+      - "5432:5432"
+    depends_on:
+      - postgres-1
+      - postgres-2
+      - postgres-3
 
 volumes:
   postgres_1_data:

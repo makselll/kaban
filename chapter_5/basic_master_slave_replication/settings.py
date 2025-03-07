@@ -83,7 +83,7 @@ DATABASES = {
         'NAME': os.environ.get('POSTGRES_DB', 'blogdb'),
         'USER': os.environ.get('POSTGRES_USER', 'bloguser'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'blogpass'),
-        'HOST': os.environ.get('DB_MASTER_HOST', 'localhost'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': '5432',
     },
     'replica': {
@@ -91,8 +91,8 @@ DATABASES = {
         'NAME': os.environ.get('POSTGRES_DB', 'blogdb'),
         'USER': os.environ.get('POSTGRES_USER', 'bloguser'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'blogpass'),
-        'HOST': os.environ.get('DB_SLAVE_HOST', 'localhost'),
-        'PORT': '5432',
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': '5431',
     }
 }
 
