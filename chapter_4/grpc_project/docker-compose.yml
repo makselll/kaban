@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  service1:
+    build:
+      context: .
+      dockerfile: service1/Dockerfile
+    ports:
+      - "8000:8000"  # FastAPI port
+      - "50051:50051"  # gRPC port
+    volumes:
+      - ./service1:/app
+    networks:
+      - grpc-network
+
+  service2:
+    build:
+      context: .
+      dockerfile: service2/Dockerfile
+    ports:
+      - "8001:8001"  # FastAPI port
+    volumes:
+      - ./service2:/app
+    depends_on:
+      - service1
+    networks:
+      - grpc-network
+
+networks:
+  grpc-network:
+    driver: bridge 

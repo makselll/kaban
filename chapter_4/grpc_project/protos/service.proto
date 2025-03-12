@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package service;
+
+// Message for sending data
+message DataRequest {
+    string message = 1;
+}
+
+// Message for receiving response
+message DataResponse {
+    string message = 1;
+    bool success = 2;
+}
+
+// Service definition
+service DataService {
+    rpc ProcessData (DataRequest) returns (DataResponse);
+} 
