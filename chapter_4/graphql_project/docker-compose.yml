@@ -5,6 +5,7 @@ services:
     build: ./backend
     volumes:
       - ./backend:/app
+      - static_volume:/app/static
       - media_volume:/app/media
     ports:
       - "8000:8000"
@@ -45,4 +46,5 @@ services:
 
 volumes:
   mariadb_data:
-  media_volume: 
+  media_volume:
+  static_volume: 
