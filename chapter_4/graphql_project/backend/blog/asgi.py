@@ -3,7 +3,7 @@ from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from django.urls import path
-from posts.consumers import CommentConsumer, ChatConsumer
+from posts.consumers import CommentConsumer
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'blog.settings')
 
@@ -11,6 +11,5 @@ application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": URLRouter([
             path("ws/comments/<int:post_id>/", CommentConsumer.as_asgi()),
-            path("ws/chat/", ChatConsumer.as_asgi()),
         ]),
 }) 
