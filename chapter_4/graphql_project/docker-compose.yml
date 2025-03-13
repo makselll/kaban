@@ -5,8 +5,8 @@ services:
     build: ./backend
     volumes:
       - ./backend:/app
-      - static_volume:/app/static
-      - media_volume:/app/media
+      - ./static:/app/static
+      - ./media:/app/media
     ports:
       - "8000:8000"
     depends_on:
@@ -35,16 +35,6 @@ services:
       MYSQL_PASSWORD: blogpassword
       MYSQL_ROOT_PASSWORD: rootpassword
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - ./db:/var/lib/mysql
     ports:
       - "3306:3306"
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-
-volumes:
-  mariadb_data:
-  media_volume:
-  static_volume: 

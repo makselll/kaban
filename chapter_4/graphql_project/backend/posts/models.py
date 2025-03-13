@@ -20,4 +20,4 @@ class Comment(models.Model):
     replay = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
-        return f'Comment by {self.author.username} on {self.post.title}' 
+        return f'[{self.id}] Comment by {self.author.username} on {self.post.title}' 
