@@ -11,11 +11,9 @@ services:
       - "8000:8000"
     depends_on:
       - db
-      - redis
     environment:
       - DJANGO_SETTINGS_MODULE=blog.settings
       - DATABASE_URL=mysql://bloguser:blogpassword@db:3306/blogdb
-      - REDIS_URL=redis://redis:6379/0
 
   frontend:
     build: ./frontend

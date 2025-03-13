@@ -24,7 +24,9 @@ const GET_POST = gql`
       content
       image
       author {
+        id
         username
+        isFollowed
       }
       comments {
         id
@@ -43,6 +45,7 @@ function PostDetail() {
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
   const [ws, setWs] = useState(null);
+  const [isFollowing, setIsFollowing] = useState(false);
 
   const { loading, error, data } = useQuery(GET_POST, {
     variables: { id: parseInt(id) },
@@ -51,6 +54,7 @@ function PostDetail() {
   useEffect(() => {
     if (data) {
       setComments(data.post.comments);
+      setIsFollowing(data.post.author.isFollowed);
     }
   }, [data]);
 
@@ -93,6 +97,11 @@ function PostDetail() {
     }
   };
 
+  const handleFollowToggle = async () => {
+    // GraphQL mutation will be implemented here
+    setIsFollowing(!isFollowing);
+  };
+
   if (loading) return <Typography>Loading...</Typography>;
   if (error) return <Typography>Error: {error.message}</Typography>;
 
@@ -114,9 +123,19 @@ function PostDetail() {
           <Typography variant="body1" color="text.secondary" paragraph>
             {post.content}
           </Typography>
-          <Typography variant="subtitle2" color="text.secondary">
-            By {post.author.username}
-          </Typography>
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Typography variant="subtitle2" color="text.secondary">
+              By {post.author.username}
+            </Typography>
+            <Button
+              variant={isFollowing ? "outlined" : "contained"}
+              color="primary"
+              onClick={handleFollowToggle}
+              size="small"
+            >
+              {isFollowing ? "Unfollow" : "Follow"}
+            </Button>
+          </Box>
         </CardContent>
       </Card>
 

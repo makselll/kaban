@@ -6,6 +6,9 @@ import PostList from './components/PostList';
 import PostDetail from './components/PostDetail';
 import CreatePost from './components/CreatePost';
 import Navbar from './components/Navbar';
+import ProfilePage from './components/ProfilePage';
+import MyPosts from './components/MyPosts';
+import FollowingList from './components/FollowingList';
 
 const httpLink = createHttpLink({
   uri: 'http://localhost:8000/graphql/',
@@ -46,6 +49,9 @@ function App() {
               <Route path="/" element={<PostList />} />
               <Route path="/post/:id" element={<PostDetail />} />
               <Route path="/create" element={<CreatePost />} />
+              <Route path="/profile/:username" element={<ProfilePage />} />
+              <Route path="/my-posts" element={<MyPosts />} />
+              <Route path="/following" element={<FollowingList />} />
             </Routes>
           </Container>
         </Router>

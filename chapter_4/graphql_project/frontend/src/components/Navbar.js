@@ -16,7 +16,7 @@ function Navbar() {
             color: 'inherit',
           }}
         >
-          Blog
+          Social Blog
         </Typography>
         <Box>
           <Button
@@ -32,6 +32,27 @@ function Navbar() {
             to="/create"
           >
             Create Post
+          </Button>
+          <Button
+            color="inherit"
+            component={RouterLink}
+            to="/my-posts"
+          >
+            My Posts
+          </Button>
+          <Button
+            color="inherit"
+            component={RouterLink}
+            to="/following"
+          >
+            Following
+          </Button>
+          <Button
+            color="inherit"
+            component={RouterLink}
+            to="/profile/me"
+          >
+            Profile
           </Button>
         </Box>
       </Toolbar>
