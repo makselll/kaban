@@ -7,7 +7,7 @@ class Post(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     image = models.ImageField(upload_to='posts/')
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    profile = models.ForeignKey("UserProfile", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -16,13 +16,13 @@ class Post(models.Model):
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, related_name='comments', on_delete=models.CASCADE)
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    profile = models.ForeignKey("UserProfile", on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     replay = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
-        return f'[{self.id}] Comment by {self.author.username} on {self.post.title}'
+        return f'[{self.id}] Comment by {self.profile.user.username} on {self.post.title}'
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -42,8 +42,8 @@ def create_user_profile(sender, instance, created, **kwargs):
         UserProfile.objects.create(user=instance)
 
 class Follow(models.Model):
-    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
-    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')
+    follower = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='following')
+    following = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='followers')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

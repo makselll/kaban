@@ -3,9 +3,9 @@ from .models import Comment, Follow, Post, UserProfile
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'post', 'author', 'content', 'created_at')
-    list_filter = ('post', 'author', 'created_at')
-    search_fields = ('content', 'author__username')
+    list_display = ('id', 'post', 'profile', 'content', 'created_at')
+    list_filter = ('post', 'profile', 'created_at')
+    search_fields = ('content', 'profile__username')
 
 
 @admin.register(UserProfile)
@@ -24,7 +24,7 @@ class FollowAdmin(admin.ModelAdmin):
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'author', 'created_at', 'updated_at')
-    list_filter = ('author', 'created_at', 'updated_at')
-    search_fields = ('title', 'author__username')
+    list_display = ('id', 'title', 'profile', 'created_at', 'updated_at')
+    list_filter = ('profile', 'created_at', 'updated_at')
+    search_fields = ('title', 'profile__username')
 

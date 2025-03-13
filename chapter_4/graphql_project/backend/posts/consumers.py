@@ -1,7 +1,10 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from posts.models import Comment, Post, UserProfile
 
 class CommentConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -34,21 +37,19 @@ class CommentConsumer(AsyncWebsocketConsumer):
                 'comment': {
                     'id': comment.id,
                     'content': comment.content,
-                    'author': comment.author.username,
+                    'profile': comment.profile.user.username,
                     'created_at': comment.created_at.isoformat()
                 }
             }
         )
 
     @database_sync_to_async
-    def create_comment(self, post_id, content, user_id):
-        from .models import Comment, Post
-        from django.contrib.auth.models import User
-        user = User.objects.get(id=user_id)
+    def create_comment(self, post_id, content, profile_id):
+        profile = UserProfile.objects.get(id=profile_id)
         post = Post.objects.get(id=post_id)
         return Comment.objects.create(
             post=post,
-            author=user,
+            profile=profile,
             content=content
         ) 
     

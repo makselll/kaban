@@ -47,7 +47,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 
 # GraphQL settings
 GRAPHENE = {
-    'SCHEMA': 'blog.schema.schema',
+    'SCHEMA': 'posts.schemas.schema',
     'MIDDLEWARE': [
         'graphene_django.debug.DjangoDebugMiddleware',
     ],
