@@ -7,3 +7,4 @@ Pillow==10.2.0
 mysqlclient==2.2.4
 django-cors-headers==4.3.1
 uvicorn[standard]
+graphene-file-upload==1.3.0

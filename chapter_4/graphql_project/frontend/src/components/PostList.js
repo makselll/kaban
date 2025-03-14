@@ -10,9 +10,7 @@ const GET_POSTS = gql`
       title
       content
       image
-      author {
-        username
-      }
+      profileId
       createdAt
     }
   }
@@ -43,7 +41,7 @@ function PostList() {
                 {post.content}
               </Typography>
               <Typography variant="caption" display="block">
-                By {post.author.username}
+                By {post.profileId}
               </Typography>
               <Button
                 component={Link}

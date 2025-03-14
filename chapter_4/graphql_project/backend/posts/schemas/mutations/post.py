@@ -1,5 +1,6 @@
 import graphene
 from graphene_django.forms.mutation import DjangoModelFormMutation
+from graphene_file_upload.scalars import Upload
 from posts.models import Post
 from django import forms
 from ..queries.post import PostType
@@ -22,7 +23,7 @@ class UpdatePost(DjangoModelFormMutation):
         id = graphene.Int(required=True)
         title = graphene.String(required=False)
         content = graphene.String(required=False)
-        image = graphene.String(required=False)
+        image = Upload(required=True)
 
     class Meta:
         form_class = PostForm
@@ -34,7 +35,7 @@ class CreatePost(DjangoModelFormMutation):
     class Arguments:
         title = graphene.String(required=True)
         content = graphene.String(required=True)
-        image = graphene.String(required=True)
+        image = Upload(required=True)
 
     class Meta:
         form_class = PostForm
@@ -42,7 +43,7 @@ class CreatePost(DjangoModelFormMutation):
 
     @classmethod
     def get_form_kwargs(cls, root, info, **input):
+        print(input, flush=1)
         kwargs = super().get_form_kwargs(root, info, **input)
-        kwargs["data"]["profile"] = 1
-
+        kwargs["data"]["profile"] = info.context.user.profile.id
         return kwargs

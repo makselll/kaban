@@ -12,6 +12,7 @@ class Query(graphene.ObjectType):
     comments = relay.ConnectionField(CommentsConnection, post_id=graphene.Int(required=False))
     # profiles = relay.ConnectionField(ProfileConnection)
     profile = graphene.Field(ProfileType, id=graphene.Int())
+    me = graphene.Field(ProfileType)
 
     def resolve_posts(self, info):
         return Post.objects.all()
@@ -23,4 +24,12 @@ class Query(graphene.ObjectType):
         if post_id is not None:
             return Comment.objects.filter(post_id=post_id)
         return Comment.objects.all()
+    
+    def resolve_me(self, info):
+        print(info.context.user, flush=1)
+        if info.context.user.is_anonymous:
+            return None
+        
+        return info.context.user.profile
+
 

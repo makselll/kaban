@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { gql, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
 import {
   Paper,
@@ -9,39 +10,54 @@ import {
   Alert,
 } from '@mui/material';
 
+
 function CreatePost() {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [image, setImage] = useState(null);
   const [error, setError] = useState('');
-  const [author, setAuthor] = useState('');
+
+  const CREATE_POST = gql`
+      mutation CreatePost($title: String!, $content: String!, $image: Upload!) {
+        createPost(input: {title: $title, content: $content, image: $image}) {
+          post {
+            id
+            title
+            content
+            image
+            profileId
+            createdAt
+          },
+          errors {
+            field
+            messages
+          }
+        }
+      }
+    `;
+  const [createPost] = useMutation(CREATE_POST);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const formData = new FormData();
-    formData.append('author', author);
-    formData.append('title', title);
-    formData.append('content', content);
-    if (image) {
-      formData.append('image', image);
-    }
 
     try {
-      const response = await fetch('http://0.0.0.0:8000/api/posts', {
-        method: 'POST',
-        body: formData,
+      const { data, loading, create_error } = await createPost({
+          variables: {
+            title,
+            content,
+            image,
+        },
       });
-      if (!response.ok) {
-        console.log(await response.json());
-        throw new Error('Failed to create post');
-      }
 
-      const data = await response.json();
-      console.log(data);
-      navigate(`/post/${data.id}`);
-    } catch (err) {
-      setError(err.message);
+      if (loading) return 'Submitting...';
+      if (create_error) return setError(create_error.message);
+      if (data) navigate(`/post/${data.post.id}`);
+
+    } catch (error) {
+      console.error('error:', error);
+      // setError(error);
     }
   };
 
@@ -74,14 +90,6 @@ function CreatePost() {
           rows={6}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          required
-          sx={{ mb: 2 }}
-        />
-        <TextField
-          fullWidth
-          label="Author"
-          value={author}
-          onChange={(e) => setAuthor(e.target.value)}
           required
           sx={{ mb: 2 }}
         />
@@ -119,4 +127,4 @@ function CreatePost() {
   );
 }
 
-export default CreatePost; 
+export default CreatePost;

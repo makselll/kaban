@@ -23,6 +23,19 @@ INSTALLED_APPS = [
     'posts',
 ]
 
+SESSION_COOKIE_DOMAIN = "localhost"
+SESSION_COOKIE_PATH = "/"
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    # "django.contrib.auth.backends.SessionBackend",
+]
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
