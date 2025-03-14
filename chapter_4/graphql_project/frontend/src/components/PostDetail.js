@@ -23,16 +23,20 @@ const GET_POST = gql`
       title
       content
       image
-      author {
+      profile {
         id
-        username
-        isFollowed
+        user {
+          username
+        }
+        avatar
       }
       comments {
         id
         content
-        author {
-          username
+        profile {
+          user {
+            username
+          }
         }
         createdAt
       }
@@ -54,10 +58,9 @@ function PostDetail() {
   useEffect(() => {
     if (data) {
       setComments(data.post.comments);
-      setIsFollowing(data.post.author.isFollowed);
+      setIsFollowing(data.post.profile?.isFollowed || false);
     }
   }, [data]);
-
 
   useEffect(() => {
     const websocket = new WebSocket(`ws://0.0.0.0:8000/ws/comments/` + id + '/');
@@ -125,7 +128,7 @@ function PostDetail() {
           </Typography>
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Typography variant="subtitle2" color="text.secondary">
-              By {post.author.username}
+              By {post.profile.user.username}
             </Typography>
             <Button
               variant={isFollowing ? "outlined" : "contained"}
@@ -169,8 +172,8 @@ function PostDetail() {
               <ListItem>
                 <ListItemText
                   primary={comment.content}
-                  secondary={`${comment.author} - ${new Date(
-                    comment.created_at
+                  secondary={`${comment.profile.user.username} - ${new Date(
+                    comment.createdAt
                   ).toLocaleString()}`}
                 />
               </ListItem>

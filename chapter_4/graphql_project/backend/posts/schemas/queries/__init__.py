@@ -10,7 +10,7 @@ class Query(graphene.ObjectType):
     posts = graphene.List(PostType)
     post = graphene.Field(PostType, id=graphene.Int())
     comments = relay.ConnectionField(CommentsConnection, post_id=graphene.Int(required=False))
-    # profiles = relay.ConnectionField(ProfileConnection)
+
     profile = graphene.Field(ProfileType, id=graphene.Int())
     me = graphene.Field(ProfileType)
 
