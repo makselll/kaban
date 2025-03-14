@@ -1,4 +1,5 @@
 import strawberry
+import strawberry_django
 from strawberry import auto
 from posts.models import Post
 from typing import List, Optional
@@ -6,7 +7,7 @@ from datetime import datetime
 from .comment import CommentType
 from .profile import UserType
 
-@strawberry.django.type(Post)
+@strawberry_django.type(Post)
 class PostType:
     id: auto
     title: auto

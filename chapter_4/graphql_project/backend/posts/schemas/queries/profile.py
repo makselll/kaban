@@ -1,9 +1,10 @@
 import strawberry
+import strawberry_django
 from strawberry import auto
 from django.contrib.auth import get_user_model
 from typing import List, Optional
 
-@strawberry.django.type(get_user_model())
+@strawberry_django.type(get_user_model())
 class UserType:
     id: auto
     username: auto

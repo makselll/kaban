@@ -1,4 +1,5 @@
 import strawberry
+import strawberry_django
 from strawberry import auto
 from strawberry.file_uploads import Upload
 from django.contrib.auth import get_user_model
@@ -6,7 +7,7 @@ from posts.models import Post, Comment
 from typing import List, Optional
 from datetime import datetime
 
-@strawberry.django.type(Post)
+@strawberry_django.type(Post)
 class PostType:
     id: auto
     title: auto
@@ -16,7 +17,7 @@ class PostType:
     profile: 'UserType'
     comments: List['CommentType']
 
-@strawberry.django.type(Comment)
+@strawberry_django.type(Comment)
 class CommentType:
     id: auto
     content: auto
@@ -24,7 +25,7 @@ class CommentType:
     post: PostType
     profile: 'UserType'
 
-@strawberry.django.type(get_user_model())
+@strawberry_django.type(get_user_model())
 class UserType:
     id: auto
     username: auto

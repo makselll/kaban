@@ -1,11 +1,14 @@
 import strawberry
+import strawberry_django
 from strawberry import auto
 from posts.models import Comment
 from typing import List, Optional
 from datetime import datetime
 from .post import PostType
 from .profile import UserType
-@strawberry.django.type(Comment)
+
+
+@strawberry_django.type(Comment)
 class CommentType:
     id: auto
     content: auto

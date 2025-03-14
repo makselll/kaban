@@ -6,8 +6,4 @@ Pillow
 mysqlclient
 django-cors-headers
 uvicorn[standard]
-strawberry-graphql[debug-server]
 strawberry-graphql-django
-strawberry-django-plus
-strawberry-graphql-django[debug-toolbar]
-strawberry-django-jwt
