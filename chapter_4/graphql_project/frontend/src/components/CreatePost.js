@@ -10,6 +10,24 @@ import {
   Alert,
 } from '@mui/material';
 
+const CREATE_POST = gql`
+  mutation CreatePost($title: String!, $content: String!, $image: Upload!) {
+    createPost(input: { title: $title, content: $content, image: $image }) {
+      post {
+        id
+        title
+        content
+        image
+        profileId
+        createdAt
+      }
+      errors {
+        field
+        messages
+      }
+    }
+  }
+`;
 
 function CreatePost() {
   const navigate = useNavigate();
@@ -18,46 +36,34 @@ function CreatePost() {
   const [image, setImage] = useState(null);
   const [error, setError] = useState('');
 
-  const CREATE_POST = gql`
-      mutation CreatePost($title: String!, $content: String!, $image: Upload!) {
-        createPost(input: {title: $title, content: $content, image: $image}) {
-          post {
-            id
-            title
-            content
-            image
-            profileId
-            createdAt
-          },
-          errors {
-            field
-            messages
-          }
-        }
-      }
-    `;
-  const [createPost] = useMutation(CREATE_POST);
+  const [createPost, { loading }] = useMutation(CREATE_POST);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    if (!image) {
+      setError('Please select an image');
+      return;
+    }
 
     try {
-      const { data, loading, create_error } = await createPost({
-          variables: {
-            title,
-            content,
-            image,
-        },
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('content', content);
+      formData.append('image', image);
+
+      const { data } = await createPost({
+        variables: { title, content, image }, // Передаем image напрямую
       });
 
-      if (loading) return 'Submitting...';
-      if (create_error) return setError(create_error.message);
-      if (data) navigate(`/post/${data.post.id}`);
-
-    } catch (error) {
-      console.error('error:', error);
-      // setError(error);
+      if (data?.createPost?.errors?.length) {
+        setError(data.createPost.errors[0].messages.join(', '));
+      } else {
+        navigate(`/post/${data.createPost.post.id}`);
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      setError(err.message);
     }
   };
 
@@ -118,9 +124,9 @@ function CreatePost() {
           variant="contained"
           color="primary"
           size="large"
-          disabled={!title || !content || !image}
+          disabled={loading || !title || !content || !image}
         >
-          Create Post
+          {loading ? 'Submitting...' : 'Create Post'}
         </Button>
       </Box>
     </Paper>

@@ -1,9 +1,9 @@
 import graphene
-from graphene_django.forms.mutation import DjangoModelFormMutation
 from graphene_file_upload.scalars import Upload
 from posts.models import Post
 from django import forms
 from ..queries.post import PostType
+from .base import BlogModelFormMutation
 
 
 class PostForm(forms.ModelForm):
@@ -16,7 +16,7 @@ class PostForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
 
-class UpdatePost(DjangoModelFormMutation):
+class UpdatePost(BlogModelFormMutation):
     post = graphene.Field(PostType)
 
     class Arguments:
@@ -29,7 +29,7 @@ class UpdatePost(DjangoModelFormMutation):
         form_class = PostForm
 
 
-class CreatePost(DjangoModelFormMutation):
+class CreatePost(BlogModelFormMutation):
     post = graphene.Field(PostType)
 
     class Arguments:
@@ -45,5 +45,6 @@ class CreatePost(DjangoModelFormMutation):
     def get_form_kwargs(cls, root, info, **input):
         print(input, flush=1)
         kwargs = super().get_form_kwargs(root, info, **input)
+        kwargs["files"] = {"image": input.pop("image", None)}  # Важно!
         kwargs["data"]["profile"] = info.context.user.profile.id
         return kwargs

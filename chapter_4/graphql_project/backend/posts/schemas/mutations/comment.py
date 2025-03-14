@@ -1,8 +1,8 @@
 import graphene
-from graphene_django.forms.mutation import DjangoModelFormMutation
 from posts.models import Comment
 from django import forms
 from ..queries.comment import CommentType
+from .base import BlogModelFormMutation
 
 
 class CommentForm(forms.ModelForm):
@@ -14,7 +14,7 @@ class CommentForm(forms.ModelForm):
         print(kwargs, flush=1)
         super().__init__(*args, **kwargs)
 
-class UpdateComment(DjangoModelFormMutation):
+class UpdateComment(BlogModelFormMutation):
     comment = graphene.Field(CommentType)
 
     class Arguments:
@@ -25,7 +25,7 @@ class UpdateComment(DjangoModelFormMutation):
     class Meta:
         form_class = CommentForm
 
-class CreateComment(DjangoModelFormMutation):
+class CreateComment(BlogModelFormMutation):
     comment = graphene.Field(CommentType)
     class Arguments:
         post_id = graphene.Int(required=True)
