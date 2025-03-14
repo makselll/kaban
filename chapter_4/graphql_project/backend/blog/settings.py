@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'channels',
     'corsheaders',
     'graphene_django',
+    'graphene_subscriptions',
     'ninja',
     'posts',
 ]
@@ -60,10 +61,17 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 
 # GraphQL settings
 GRAPHENE = {
-    'SCHEMA': 'posts.schemas.schema',
+    'SCHEMA': 'posts.schemas.schema.schema',
     'MIDDLEWARE': [
         'graphene_django.debug.DjangoDebugMiddleware',
     ],
+    "SUBSCRIPTION_PATH": "/ws/comments",
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
 }
 
 ROOT_URLCONF = 'blog.urls'

@@ -13,13 +13,29 @@ import FollowingList from './components/FollowingList';
 import LoginModal from './components/LoginModal';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
-const uploadLink = createUploadLink({
+const httpLink = createUploadLink({
   uri: 'http://localhost:8000/graphql/',
   credentials: 'include',
 });
 
+const wsLink = new GraphQLWsLink(createClient({
+  url: 'ws://localhost:8000/ws/comments',
+}));
+
+const splitLink = split(
+  ({ query }) => {
+    const definition = getMainDefinition(query);
+    return (
+      definition.kind === 'OperationDefinition' &&
+      definition.operation === 'subscription'
+    );
+  },
+  wsLink,
+  httpLink,
+);
+
 const client = new ApolloClient({
-  link: uploadLink,
+  link: splitLink,
   cache: new InMemoryCache(),
   defaultOptions: {
     watchQuery: {
