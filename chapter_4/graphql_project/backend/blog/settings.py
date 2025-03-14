@@ -18,10 +18,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'channels',
     'corsheaders',
-    'graphene_django',
-    'graphene_subscriptions',
     'ninja',
     'posts',
+    "strawberry.django",
 ]
 
 SESSION_COOKIE_DOMAIN = "localhost"
@@ -33,9 +32,12 @@ CSRF_COOKIE_SECURE = True
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
-    # "django.contrib.auth.backends.SessionBackend",
 ]
 
+STRAWBERRY_DJANGO = {
+    "FIELD_DESCRIPTION_FROM_HELP_TEXT": True,
+    "TYPE_DESCRIPTION_FROM_MODEL_DOCSTRING": True,
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -59,20 +61,6 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://\d+\.\d+\.\d+\.\d+:3000$",
 ]
 
-# GraphQL settings
-GRAPHENE = {
-    'SCHEMA': 'posts.schemas.schema.schema',
-    'MIDDLEWARE': [
-        'graphene_django.debug.DjangoDebugMiddleware',
-    ],
-    "SUBSCRIPTION_PATH": "/ws/comments",
-}
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
-}
 
 ROOT_URLCONF = 'blog.urls'
 

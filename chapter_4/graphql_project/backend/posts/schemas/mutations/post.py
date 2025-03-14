@@ -1,50 +1,66 @@
-import graphene
-from graphene_file_upload.scalars import Upload
+import strawberry
+from strawberry.file_uploads import Upload
+from typing import Optional
 from posts.models import Post
-from django import forms
 from ..queries.post import PostType
-from .base import BlogModelFormMutation
+from .base import BaseMutation, ValidationErrorType
 
+@strawberry.input
+class CreatePostInput:
+    title: str
+    content: str
+    image: Optional[Upload] = None
 
-class PostForm(forms.ModelForm):
-    class Meta:
-        model = Post
-        fields = ('title', 'content', 'image', 'profile')
+@strawberry.input
+class UpdatePostInput:
+    id: strawberry.ID
+    title: Optional[str] = None
+    content: Optional[str] = None
+    image: Optional[Upload] = None
 
-    def __init__(self, *args, **kwargs):
-        print(kwargs, flush=1)
-        super().__init__(*args, **kwargs)
+@strawberry.type
+class PostMutation:
+    @strawberry.mutation
+    def create_post(self, info, input: CreatePostInput) -> PostType:
+        if not info.context.user.is_authenticated:
+            raise Exception("Authentication required")
+        
+        post = Post.objects.create(
+            title=input.title,
+            content=input.content,
+            image=input.image,
+            profile=info.context.user
+        )
+        return post
 
+    @strawberry.mutation
+    def update_post(self, info, input: UpdatePostInput) -> Optional[PostType]:
+        if not info.context.user.is_authenticated:
+            raise Exception("Authentication required")
+        
+        try:
+            post = Post.objects.get(id=input.id, profile=info.context.user)
+        except Post.DoesNotExist:
+            return None
+            
+        if input.title:
+            post.title = input.title
+        if input.content:
+            post.content = input.content
+        if input.image:
+            post.image = input.image
+            
+        post.save()
+        return post
 
-class UpdatePost(BlogModelFormMutation):
-    post = graphene.Field(PostType)
-
-    class Arguments:
-        id = graphene.Int(required=True)
-        title = graphene.String(required=False)
-        content = graphene.String(required=False)
-        image = Upload(required=True)
-
-    class Meta:
-        form_class = PostForm
-
-
-class CreatePost(BlogModelFormMutation):
-    post = graphene.Field(PostType)
-
-    class Arguments:
-        title = graphene.String(required=True)
-        content = graphene.String(required=True)
-        image = Upload(required=True)
-
-    class Meta:
-        form_class = PostForm
-        exclude_fields = ('profile',)
-
-    @classmethod
-    def get_form_kwargs(cls, root, info, **input):
-        print(input, flush=1)
-        kwargs = super().get_form_kwargs(root, info, **input)
-        kwargs["files"] = {"image": input.pop("image", None)}  # Важно!
-        kwargs["data"]["profile"] = info.context.user.profile.id
-        return kwargs
+    @strawberry.mutation
+    def delete_post(self, info, id: strawberry.ID) -> bool:
+        if not info.context.user.is_authenticated:
+            raise Exception("Authentication required")
+        
+        try:
+            post = Post.objects.get(id=id, profile=info.context.user)
+            post.delete()
+            return True
+        except Post.DoesNotExist:
+            return False

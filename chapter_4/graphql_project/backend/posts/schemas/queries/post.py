@@ -1,17 +1,31 @@
-import graphene
-from graphene_django import DjangoObjectType
+import strawberry
+from strawberry import auto
 from posts.models import Post
+from typing import List, Optional
+from datetime import datetime
 from .comment import CommentType
-class PostType(DjangoObjectType):
-    profile_id = graphene.Int()
-    class Meta:
-        model = Post
-        fields = ('id', 'title', 'content', 'image', 'profile', 'created_at',)
+from .profile import UserType
 
-    comments = graphene.List(CommentType)
+@strawberry.django.type(Post)
+class PostType:
+    id: auto
+    title: auto
+    content: auto
+    image: Optional[str]
+    created_at: datetime
+    profile: UserType
 
-    def resolve_comments(self, info):
-        return self.comments.all()
+    comments = strawberry.field(lambda self: self.comments.all())
 
     def resolve_profile_id(self, info):
         return self.profile.id
+
+@strawberry.type
+class PostQuery:
+    @strawberry.field
+    def posts(self) -> List[PostType]:
+        return Post.objects.all()
+
+    @strawberry.field
+    def post(self, id: strawberry.ID) -> Optional[PostType]:
+        return Post.objects.filter(id=id).first()

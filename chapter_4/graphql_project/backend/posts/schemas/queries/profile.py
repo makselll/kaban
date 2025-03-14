@@ -1,24 +1,28 @@
-from graphene_django import DjangoObjectType
-from posts.models import UserProfile
-from graphene import relay, Field
-from django.contrib.auth.models import User
+import strawberry
+from strawberry import auto
+from django.contrib.auth import get_user_model
+from typing import List, Optional
 
-class UserType(DjangoObjectType):
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'email')
-        interfaces = (relay.Node,) 
+@strawberry.django.type(get_user_model())
+class UserType:
+    id: auto
+    username: auto
+    email: auto
+    first_name: auto
+    last_name: auto
 
+@strawberry.type
+class ProfileQuery:
+    @strawberry.field
+    def users(self) -> List[UserType]:
+        return get_user_model().objects.all()
 
-class ProfileType(DjangoObjectType):
-    user = Field(UserType)
-    class Meta:
-        model = UserProfile
-        fields = ('id', 'user', 'bio', 'avatar', 'date_of_birth', 'location', 'created_at', 'updated_at')
-        interfaces = (relay.Node,) 
+    @strawberry.field
+    def user(self, id: strawberry.ID) -> Optional[UserType]:
+        return get_user_model().objects.filter(id=id).first()
 
-
-
-class ProfileConnection(relay.Connection):
-    class Meta:
-        node = ProfileType
+    @strawberry.field
+    def me(self, info) -> Optional[UserType]:
+        if info.context.user.is_authenticated:
+            return info.context.user
+        return None

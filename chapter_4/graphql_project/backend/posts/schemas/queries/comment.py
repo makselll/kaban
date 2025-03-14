@@ -1,25 +1,24 @@
-import graphene
-from graphene_django import DjangoObjectType
+import strawberry
+from strawberry import auto
 from posts.models import Comment
-from graphene import relay
+from typing import List, Optional
+from datetime import datetime
+from .post import PostType
+from .profile import UserType
+@strawberry.django.type(Comment)
+class CommentType:
+    id: auto
+    content: auto
+    created_at: datetime
+    post: PostType
+    profile: UserType
 
+@strawberry.type
+class CommentQuery:
+    @strawberry.field
+    def comments(self) -> List[CommentType]:
+        return Comment.objects.all()
 
-class CommentType(DjangoObjectType):
-    class Meta:
-        model = Comment
-        fields = ('id', 'post', 'profile', 'content', 'created_at', 'replay')
-        interfaces = (relay.Node,)  # mak
-
-    replays = graphene.List(lambda: CommentType)
-    raw_id = graphene.Int()
-
-    def resolve_raw_id(self, info):
-        return self.id  # Возвращает обычный ID
-
-    def resolve_replays(self, info, **kwargs):
-        return Comment.objects.filter(replay=self) 
-    
-
-class CommentsConnection(relay.Connection):
-    class Meta:
-        node = CommentType
+    @strawberry.field
+    def comment(self, id: strawberry.ID) -> Optional[CommentType]:
+        return Comment.objects.filter(id=id).first()

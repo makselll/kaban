@@ -1,69 +1,68 @@
-import graphene
-from django.contrib.auth import login, logout
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.models import User
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
-from ..queries.profile import ProfileType
+import strawberry
+from django.contrib.auth import get_user_model, authenticate, login, logout
+from typing import Optional
+from .base import ValidationErrorType, BaseSuccess
 
 
-class RegisterMutation(graphene.Mutation):
-    profile = graphene.Field(ProfileType)
+@strawberry.input
+class LoginInput:
+    username: str
+    password: str
 
-    class Arguments:
-        username = graphene.String(required=True)
-        email = graphene.String(required=True)
-        password = graphene.String(required=True)
-        password2 = graphene.String(required=True)
+@strawberry.input
+class RegisterInput:
+    username: str
+    email: str
+    password: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
 
-    @classmethod
-    def mutate(cls, root, info, username, email, password, password2):
-        if password != password2:
-            raise ValidationError("Passwords don't match")
-        
-        try:
-            validate_password(password)
-        except ValidationError as e:
-            raise ValidationError(e.messages)
-        
-        if User.objects.filter(username=username).exists():
-            raise ValidationError("Username already exists")
-        
-        if User.objects.filter(email=email).exists():
-            raise ValidationError("Email already exists")
-        
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password
+@strawberry.type
+class AuthMutation:
+    @strawberry.mutation
+    def login(self, info, input: LoginInput) -> Optional[ValidationErrorType]:
+        user = authenticate(
+            username=input.username,
+            password=input.password
         )
+        
+        if user is None:
+            return ValidationErrorType(
+                field="credentials",
+                message="Invalid credentials"
+            )
+            
         login(info.context, user)
-        return RegisterMutation(profile=info.context.user.profile)
+        return None
 
-
-class LoginMutation(graphene.Mutation):
-    profile = graphene.Field(ProfileType)
-
-    class Arguments:
-        username = graphene.String(required=True)
-        password = graphene.String(required=True)
-
-    def resolve_login(self, info, username, password):
-        return User.objects.exists(username=username)
-    
-    @classmethod
-    def mutate(cls, root, info, username, password):
-        form = AuthenticationForm(info.context, data={"username": username, "password": password})
-        if form.is_valid():
-            login(info.context, form.get_user())
-            return LoginMutation(profile=info.context.user.profile)
-        return False
-
-
-class LogoutMutation(graphene.Mutation):
-    success = graphene.Boolean()
-
-    @classmethod
-    def mutate(cls, root, info):
+    @strawberry.mutation
+    def logout(self, info) -> BaseSuccess:
         logout(info.context)
-        return LogoutMutation(success=True)
+        return BaseSuccess(success=True)
+
+    @strawberry.mutation
+    def register(self, info, input: RegisterInput) -> Optional[ValidationErrorType]:
+        User = get_user_model()
+        
+        if User.objects.filter(username=input.username).exists():
+            return ValidationErrorType(
+                field="username",
+                message="Username already exists"
+            )
+            
+        if User.objects.filter(email=input.email).exists():
+            return ValidationErrorType(
+                field="email",
+                message="Email already exists"
+            )
+            
+        user = User.objects.create_user(
+            username=input.username,
+            email=input.email,
+            password=input.password,
+            first_name=input.first_name or "",
+            last_name=input.last_name or ""
+        )
+        
+        login(info.context, user)
+        return None
