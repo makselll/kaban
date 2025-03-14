@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, gql, useMutation } from '@apollo/client';
+import { useQuery, gql, useMutation, useSubscription } from '@apollo/client';
 import {
   Card,
   CardContent,
@@ -84,13 +84,43 @@ const UNFOLLOW_PROFILE = gql`
   }
 `;
 
+const CREATE_COMMENT = gql`
+  mutation CreateComment($postId: ID!, $content: String!) {
+    createComment(input: { postId: $postId, content: $content }) {
+      id
+      content
+      profile {
+        id
+        user {
+          username
+        }
+      }
+      createdAt
+    }
+  }
+`;
+
+const COMMENT_CREATED = gql`
+  subscription OnCommentCreated($postId: ID!) {
+    commentCreated(postId: $postId) {
+      id
+      content
+      profile {
+        id
+        user {
+          username
+        }
+      }
+      
+    }
+  }
+`;
 
 function PostDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
-  const [ws, setWs] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
@@ -105,6 +135,11 @@ function PostDetail() {
   const [updatePost] = useMutation(UPDATE_POST);
   const [followProfile] = useMutation(FOLLOW_PROFILE);
   const [unfollowProfile] = useMutation(UNFOLLOW_PROFILE);
+  const [createComment] = useMutation(CREATE_COMMENT);
+
+  const { data: subscriptionData } = useSubscription(COMMENT_CREATED, {
+    variables: { postId: id },
+  });
 
   useEffect(() => {
     if (data) {
@@ -116,41 +151,25 @@ function PostDetail() {
   }, [data]);
 
   useEffect(() => {
-    const websocket = new WebSocket(`ws://0.0.0.0:8000/graphql/`);
+    if (subscriptionData?.commentCreated) {
+      console.log("subscriptionData", subscriptionData)
+      setComments((prevComments) => [...prevComments, subscriptionData.commentCreated]);
+    }
+  }, [subscriptionData]);
 
-    websocket.onmessage = (event) => {
-      const message_data = JSON.parse(event.data);
-      console.log(message_data);
-      if (message_data.type === 'new_comment') {
-        setComments((prevComments) => [...prevComments, message_data.comment]);
+  const handleSubmitComment = async () => {
+    if (comment.trim()) {
+      try {
+        await createComment({
+          variables: {
+            postId: parseInt(id),
+            content: comment.trim(),
+          },
+        });
+        setComment('');
+      } catch (error) {
+        console.error('Error creating comment:', error);
       }
-    };
-
-    setWs(websocket);
-
-    // Cleanup function to close WebSocket connection
-    return () => {
-      if (websocket) {
-        websocket.close();
-      }
-    };
-  }, [id]); // Added id to dependency array
-
-
-  const handleSubmitComment = () => {
-    console.log(ws);
-    if (ws && comment.trim()) {
-      const userData = JSON.parse(localStorage.getItem('user'));
-      ws.send(
-        JSON.stringify({
-          post_id: parseInt(id),
-          content: comment,
-          profile_id: userData?.id,
-        })
-      );
-      console.log(
-        'send'
-      );
     }
   };
 

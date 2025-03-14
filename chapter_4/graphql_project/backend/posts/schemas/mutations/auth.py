@@ -46,5 +46,5 @@ class AuthMutation:
         user = authenticate(username=username, password=password)
         if not user:
             raise Exception("Invalid credentials")
-        login(info.context.request, user)
+        login(info.context["request"], user)
         return user.profile

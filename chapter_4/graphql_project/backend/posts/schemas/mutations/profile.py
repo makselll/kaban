@@ -7,7 +7,7 @@ from posts.models import UserProfile
 class ProfileMutation: 
     @strawberry_django.mutation(extensions=[IsAuthenticated()])
     async def follow(self, info, id: strawberry.ID) -> bool:
-        user = info.context.request.user
+        user = info.context["request"].user
         try:
             to_follow_profile = await UserProfile.objects.aget(id=id)
             current_profile = await UserProfile.objects.aget(user=user)
@@ -22,7 +22,7 @@ class ProfileMutation:
     
     @strawberry_django.mutation(extensions=[IsAuthenticated()])
     async def unfollow(self, info, id: strawberry.ID) -> bool:
-        user = info.context.request.user    
+        user = info.context["request"].user    
         try:
             to_unfollow_profile = await UserProfile.objects.aget(id=id)
             current_profile = await UserProfile.objects.aget(user=user)

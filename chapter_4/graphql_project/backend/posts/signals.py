@@ -10,24 +10,34 @@ def comment_created_signal(sender, instance, created, **kwargs):
     if created:
         channel_layer = get_channel_layer()
         group_name = f"posts_{instance.post.id}_comments"
-        
-        # Преобразуем комментарий в словарь для отправки
+
+
+        # Convert comment to dictionary for sending
         comment_data = {
             "id": instance.id,
             "content": instance.content,
             "created_at": instance.created_at.isoformat(),
             "profile": {
                 "id": instance.profile.id,
-                "username": instance.profile.user.username,
+                "avatar": instance.profile.avatar,
+                "bio": instance.profile.bio,
+                "user": {
+                    "username": instance.profile.user.username,
+                    "id": instance.profile.user.id,
+                    "email": instance.profile.user.email,
+                    "first_name": instance.profile.user.first_name,
+                    "last_name": instance.profile.user.last_name,
+                },
             },
-            "post": instance.post.id
+            "post_id": instance.post.id
         }
         
-        # Отправляем сообщение в группу
+        # Send message to the group
         async_to_sync(channel_layer.group_send)(
             group_name,
             {
                 "type": "comment_created",
+                "room_id": group_name,
                 "comment": comment_data
             }
         ) 

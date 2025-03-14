@@ -24,7 +24,7 @@ class UserProfileType:
 
     @strawberry_django.field(name="isFollowed", extensions=[IsAuthenticated()])
     def resolve_is_followed(self, info) -> bool:
-        if info.context.request.user.profile.following.filter(following=self).exists():
+        if info.context["request"].user.profile.following.filter(following=self).exists():
             return True
         return False
 
@@ -39,11 +39,11 @@ class ProfileQuery:
 
     @strawberry_django.field(name="me")
     def resolve_me(self, info) -> UserProfileType | None:
-        if info.context.request.user.is_authenticated:
-            return info.context.request.user.profile
+        if info.context["request"].user.is_authenticated:
+            return info.context["request"].user.profile
         return None
     
     @strawberry_django.field(name="isFollowing")
     def resolve_is_following(self, info) -> bool:
-        return info.context.request.user.profile.following.filter(following=self).exists()
+        return info.context["request"].user.profile.following.filter(following=self).exists()
     

@@ -25,7 +25,7 @@ class UpdatePostInput:
 class PostMutation:
     @strawberry.mutation(extensions=[IsAuthenticated()])
     def create_post(self, info, input: CreatePostInput) -> PostType:
-        user = info.context.request.user
+        user = info.context["request"].user
         
         post = Post.objects.create(
             title=input.title,
@@ -38,7 +38,7 @@ class PostMutation:
     @strawberry.mutation(extensions=[IsAuthenticated()])
     async def update_post(self, info, input: UpdatePostInput) -> PostType:        
         try:
-            post = await Post.objects.aget(id=input.id, profile__user=info.context.request.user)
+            post = await Post.objects.aget(id=input.id, profile__user=info.context["request"].user)
         except Post.DoesNotExist:
             raise Exception("Post not found")
             
@@ -55,7 +55,7 @@ class PostMutation:
     @strawberry.mutation(extensions=[IsAuthenticated()])
     async def delete_post(self, info, id: strawberry.ID) -> bool:        
         try:
-            post = await Post.objects.aget(id=id, profile__user=info.context.request.user)
+            post = await Post.objects.aget(id=id, profile__user=info.context["request"].user)
             await post.adelete()
             return True
         except Post.DoesNotExist:

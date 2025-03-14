@@ -37,4 +37,4 @@ class PostQuery:
     
     @strawberry_django.field(name="myPosts")
     def resolve_my_posts(self, info) -> List[PostType]:
-        return Post.objects.filter(profile=info.context.request.user.profile)
+        return Post.objects.filter(profile=info.context["request"].user.profile)
