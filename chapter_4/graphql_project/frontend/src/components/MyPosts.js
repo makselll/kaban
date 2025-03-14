@@ -3,125 +3,100 @@ import {
   Container,
   Paper,
   Typography,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  IconButton,
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+  CardActions,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
+  CircularProgress,
+  Box,
 } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { useQuery } from '@apollo/client';
+import { gql } from '@apollo/client';
+import { useNavigate } from 'react-router-dom';
+
+const GET_MY_POSTS = gql`
+query GetMyPosts {
+  myPosts {
+    id
+    title
+    content
+    image
+    comments {
+      id
+      content
+      profile {
+        id
+        user {
+          id
+          username
+        }
+      }
+    }
+  }
+}
+`;
 
 const MyPosts = () => {
   const [posts, setPosts] = useState([]);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [editingPost, setEditingPost] = useState(null);
-  const [postForm, setPostForm] = useState({
-    title: '',
-    content: '',
-  });
+  const navigate = useNavigate();
 
-  const handleEditClick = (post) => {
-    setEditingPost(post);
-    setPostForm({
-      title: post.title,
-      content: post.content,
-    });
-    setOpenDialog(true);
-  };
+  const { data, loading, error } = useQuery(GET_MY_POSTS);
 
-  const handleDeleteClick = async (postId) => {
-    // GraphQL mutation will be implemented here
-  };
+  useEffect(() => {
+    if (data) {
+      setPosts(data.myPosts);
+    }
+  }, [data]);
 
-  const handleDialogClose = () => {
-    setOpenDialog(false);
-    setEditingPost(null);
-    setPostForm({ title: '', content: '' });
-  };
+  if (loading) return <CircularProgress />;
+  if (error) return <Typography variant="h6">Error: {error.message}</Typography>;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    // GraphQL mutation will be implemented here
-    handleDialogClose();
+  const handleViewPost = (postId) => {
+    navigate(`/post/${postId}`);
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+        <Typography variant="h4" gutterBottom sx={{ mb: 4, fontWeight: 'bold' }}>
           My Posts
         </Typography>
-        <List>
+        <Grid container spacing={3}>
           {posts.map((post) => (
-            <ListItem key={post.id} divider>
-              <ListItemText
-                primary={post.title}
-                secondary={post.content.substring(0, 100) + '...'}
-              />
-              <ListItemSecondaryAction>
-                <IconButton
-                  edge="end"
-                  aria-label="edit"
-                  onClick={() => handleEditClick(post)}
-                  sx={{ mr: 1 }}
-                >
-                  <EditIcon />
-                </IconButton>
-                <IconButton
-                  edge="end"
-                  aria-label="delete"
-                  onClick={() => handleDeleteClick(post.id)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </ListItemSecondaryAction>
-            </ListItem>
+            <Grid item xs={12} md={6} lg={4} key={post.id}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <CardMedia
+                  component="img"
+                  height="200"
+                  image={'http://0.0.0.0:8000/media/' + post.image}
+                  alt={post.title}
+                  sx={{ objectFit: 'cover' }}
+                />
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography gutterBottom variant="h6" component="h2" sx={{ fontWeight: 'bold' }}>
+                    {post.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {post.content.substring(0, 150) + '...'}
+                  </Typography>
+                </CardContent>
+                <CardActions sx={{ justifyContent: 'center', p: 2 }}>
+                  <Button 
+                    variant="contained" 
+                    color="primary"
+                    onClick={() => handleViewPost(post.id)}
+                    sx={{ width: '100%' }}
+                  >
+                    View Post
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
           ))}
-        </List>
+        </Grid>
       </Paper>
-
-      <Dialog open={openDialog} onClose={handleDialogClose}>
-        <DialogTitle>
-          {editingPost ? 'Edit Post' : 'Create New Post'}
-        </DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Title"
-              fullWidth
-              value={postForm.title}
-              onChange={(e) =>
-                setPostForm({ ...postForm, title: e.target.value })
-              }
-            />
-            <TextField
-              margin="dense"
-              label="Content"
-              fullWidth
-              multiline
-              rows={4}
-              value={postForm.content}
-              onChange={(e) =>
-                setPostForm({ ...postForm, content: e.target.value })
-              }
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleDialogClose}>Cancel</Button>
-            <Button type="submit" variant="contained" color="primary">
-              {editingPost ? 'Update' : 'Create'}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
     </Container>
   );
 };

@@ -13,18 +13,18 @@ import {
 const CREATE_POST = gql`
   mutation CreatePost($title: String!, $content: String!, $image: Upload!) {
     createPost(input: { title: $title, content: $content, image: $image }) {
-      post {
         id
         title
         content
         image
-        profileId
+        profile {
+            id
+            user {
+              id
+              username
+            }
+        }
         createdAt
-      }
-      errors {
-        field
-        messages
-      }
     }
   }
 `;
@@ -59,7 +59,7 @@ function CreatePost() {
       if (data?.createPost?.errors?.length) {
         setError(data.createPost.errors[0].messages.join(', '));
       } else {
-        navigate(`/post/${data.createPost.post.id}`);
+        navigate(`/post/${data.createPost.id}`);
       }
     } catch (err) {
       console.error('Upload error:', err);

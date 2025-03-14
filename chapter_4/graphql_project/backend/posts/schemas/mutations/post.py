@@ -1,47 +1,46 @@
 import strawberry
 from strawberry.file_uploads import Upload
-from typing import Optional
 from posts.models import Post
 from ..queries.post import PostType
-from .base import BaseMutation, ValidationErrorType
+from ..base import BaseSuccess
+from strawberry_django.permissions import (
+    IsAuthenticated,
+)
+
 
 @strawberry.input
 class CreatePostInput:
     title: str
     content: str
-    image: Optional[Upload] = None
+    image: Upload = None
 
 @strawberry.input
 class UpdatePostInput:
     id: strawberry.ID
-    title: Optional[str] = None
-    content: Optional[str] = None
-    image: Optional[Upload] = None
+    title: str | None = None
+    content: str | None = None
+    image: Upload | None = None
 
 @strawberry.type
 class PostMutation:
-    @strawberry.mutation
+    @strawberry.mutation(extensions=[IsAuthenticated()])
     def create_post(self, info, input: CreatePostInput) -> PostType:
-        if not info.context.user.is_authenticated:
-            raise Exception("Authentication required")
+        user = info.context.request.user
         
         post = Post.objects.create(
             title=input.title,
             content=input.content,
             image=input.image,
-            profile=info.context.user
+            profile=user.profile
         )
         return post
 
-    @strawberry.mutation
-    def update_post(self, info, input: UpdatePostInput) -> Optional[PostType]:
-        if not info.context.user.is_authenticated:
-            raise Exception("Authentication required")
-        
+    @strawberry.mutation(extensions=[IsAuthenticated()])
+    async def update_post(self, info, input: UpdatePostInput) -> PostType:        
         try:
-            post = Post.objects.get(id=input.id, profile=info.context.user)
+            post = await Post.objects.aget(id=input.id, profile__user=info.context.request.user)
         except Post.DoesNotExist:
-            return None
+            raise Exception("Post not found")
             
         if input.title:
             post.title = input.title
@@ -50,17 +49,14 @@ class PostMutation:
         if input.image:
             post.image = input.image
             
-        post.save()
+        await post.asave()
         return post
 
-    @strawberry.mutation
-    def delete_post(self, info, id: strawberry.ID) -> bool:
-        if not info.context.user.is_authenticated:
-            raise Exception("Authentication required")
-        
+    @strawberry.mutation(extensions=[IsAuthenticated()])
+    async def delete_post(self, info, id: strawberry.ID) -> bool:        
         try:
-            post = Post.objects.get(id=id, profile=info.context.user)
-            post.delete()
+            post = await Post.objects.aget(id=id, profile__user=info.context.request.user)
+            await post.adelete()
             return True
         except Post.DoesNotExist:
-            return False
+            raise Exception("Post not found")

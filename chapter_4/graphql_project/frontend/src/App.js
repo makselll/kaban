@@ -12,6 +12,11 @@ import MyPosts from './components/MyPosts';
 import FollowingList from './components/FollowingList';
 import LoginModal from './components/LoginModal';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { createClient } from 'graphql-ws';
+import { split } from '@apollo/client';
+import { getMainDefinition } from '@apollo/client/utilities';
+
 
 const httpLink = createUploadLink({
   uri: 'http://localhost:8000/graphql/',
@@ -19,7 +24,7 @@ const httpLink = createUploadLink({
 });
 
 const wsLink = new GraphQLWsLink(createClient({
-  url: 'ws://localhost:8000/ws/comments',
+  url: 'ws://localhost:8000/graphql/',
 }));
 
 const splitLink = split(

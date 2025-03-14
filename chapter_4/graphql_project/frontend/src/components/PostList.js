@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery, gql } from '@apollo/client';
-import { Grid, Card, CardContent, CardMedia, Typography, Button } from '@mui/material';
+import { Grid, Card, CardContent, CardMedia, Typography, Button, Avatar, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
 
 const GET_POSTS = gql`
@@ -10,7 +10,16 @@ const GET_POSTS = gql`
       title
       content
       image
-      profileId
+      profile {
+        id
+        avatar {
+          path
+        }
+        user {
+          id
+          username
+        }
+      }
       createdAt
     }
   }
@@ -34,14 +43,21 @@ function PostList() {
               alt={post.title}
             />
             <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Avatar
+                  src={post.profile.avatar ? 'http://0.0.0.0:8000/media/' + post.profile.avatar : null}
+                  alt={post.profile.user.username}
+                  sx={{ mr: 1 }}
+                />
+                <Typography variant="caption">
+                  By {post.profile.user.username}
+                </Typography>
+              </Box>
               <Typography gutterBottom variant="h5" component="div">
                 {post.title}
               </Typography>
               <Typography variant="body2" color="text.secondary" noWrap>
                 {post.content}
-              </Typography>
-              <Typography variant="caption" display="block">
-                By {post.profileId}
               </Typography>
               <Button
                 component={Link}

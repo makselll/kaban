@@ -7,3 +7,4 @@ mysqlclient
 django-cors-headers
 uvicorn[standard]
 strawberry-graphql-django
+starlette

@@ -6,8 +6,10 @@ const AuthContext = createContext(null);
 const LOGIN_MUTATION = gql`
   mutation Login($username: String!, $password: String!) {
     login(username: $username, password: $password) {
-      profile {
+      id
+      user {
         id
+        username
       }
     }
   }
@@ -15,17 +17,17 @@ const LOGIN_MUTATION = gql`
 
 const LOGOUT_MUTATION = gql`
   mutation Logout {
-    logout {
-      success
-    }
+    logout
   }
 `;
 
 const REGISTER_MUTATION = gql`
   mutation Register($email: String!, $username: String!, $password: String!, $password2: String!) {
     register(email: $email, username: $username, password: $password, password2: $password2) {
-      profile {
+      id
+      user {
         id
+        username
       }
     }
   }
@@ -36,10 +38,14 @@ const GET_CURRENT_USER = gql`
   query GetCurrentUser {
     me {
       id
+      user {
+        id
+        username
+      }
+      avatar {
+        path
+      }
       bio
-      avatar
-      dateOfBirth
-      location
     }
   }
 `;
@@ -56,6 +62,7 @@ export const AuthProvider = ({ children }) => {
     if (userData?.me) {
       setUser(userData.me);
       setIsAuthenticated(true);
+      localStorage.setItem('user', JSON.stringify(userData.me));
     } else {
       setUser(null);
       setIsAuthenticated(false);
@@ -64,14 +71,17 @@ export const AuthProvider = ({ children }) => {
 
   const handleLogin = async (username, password) => {
     try {
-      const { data } = await login({
+      const { data, errors } = await login({
         variables: {
           username,
           password
         }
       });
+      if (errors) {
+        throw new Error(errors[0].message);
+      }
       setIsAuthenticated(true);
-      return data.login.profile.id;
+      return data.login.id;
     } catch (error) {
       console.error('Login error:', error);
       return false;
@@ -81,7 +91,7 @@ export const AuthProvider = ({ children }) => {
   const handleLogout = async () => {
     try {
       const { data } = await logout();
-      if (data.logout.success) {
+      if (data.logout) {
         setUser(null);
         setIsAuthenticated(false);
         return true;

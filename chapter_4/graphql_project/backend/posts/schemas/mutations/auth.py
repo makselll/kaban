@@ -1,68 +1,50 @@
 import strawberry
-from django.contrib.auth import get_user_model, authenticate, login, logout
+from django.contrib.auth import get_user_model, authenticate, login
 from typing import Optional
-from .base import ValidationErrorType, BaseSuccess
-
-
-@strawberry.input
-class LoginInput:
-    username: str
-    password: str
-
+import strawberry_django
+from strawberry import auto
+from ..queries.profile import UserProfileType
+from django.db.models import Q
 @strawberry.input
 class RegisterInput:
     username: str
     email: str
     password: str
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    password2: str
+
+
+@strawberry_django.type(get_user_model())
+class User:
+    username: auto
+    email: auto
+
 
 @strawberry.type
 class AuthMutation:
-    @strawberry.mutation
-    def login(self, info, input: LoginInput) -> Optional[ValidationErrorType]:
-        user = authenticate(
-            username=input.username,
-            password=input.password
-        )
-        
-        if user is None:
-            return ValidationErrorType(
-                field="credentials",
-                message="Invalid credentials"
-            )
-            
-        login(info.context, user)
-        return None
 
-    @strawberry.mutation
-    def logout(self, info) -> BaseSuccess:
-        logout(info.context)
-        return BaseSuccess(success=True)
+    logout = strawberry_django.auth.logout()
 
-    @strawberry.mutation
-    def register(self, info, input: RegisterInput) -> Optional[ValidationErrorType]:
-        User = get_user_model()
+    @strawberry_django.field(name="register")
+    def resolve_register(self, info, input: RegisterInput) -> UserProfileType:
+
+        if User.objects.filter(Q(username=input.username) | Q(email=input.email)).exists():
+            raise Exception("User already exists")
         
-        if User.objects.filter(username=input.username).exists():
-            return ValidationErrorType(
-                field="username",
-                message="Username already exists"
-            )
-            
-        if User.objects.filter(email=input.email).exists():
-            return ValidationErrorType(
-                field="email",
-                message="Email already exists"
-            )
-            
+        if input.password != input.password2:
+            raise Exception("Passwords do not match")
+
         user = User.objects.create_user(
             username=input.username,
             email=input.email,
             password=input.password,
-            first_name=input.first_name or "",
-            last_name=input.last_name or ""
         )
-        
-        login(info.context, user)
-        return None
+        return user.profile
+    
+
+    @strawberry_django.field(name="login")
+    def login(self, info, username: str, password: str) -> UserProfileType:
+        user = authenticate(username=username, password=password)
+        if not user:
+            raise Exception("Invalid credentials")
+        login(info.context.request, user)
+        return user.profile
