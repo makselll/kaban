@@ -21,6 +21,8 @@ INSTALLED_APPS = [
     'ninja',
     'posts',
     "strawberry.django",
+    "debug_toolbar",
+    "strawberry_django",
 ]
 
 SESSION_COOKIE_DOMAIN = "localhost"
@@ -39,6 +41,13 @@ STRAWBERRY_DJANGO = {
     "TYPE_DESCRIPTION_FROM_MODEL_DOCSTRING": True,
 }
 
+INTERNAL_IPS = [
+    # ...
+    "127.0.0.1",
+    "0.0.0.0",
+    # ...
+]
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -48,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "strawberry_django.middlewares.debug_toolbar.DebugToolbarMiddleware",
 ]
 
 # CORS settings
@@ -126,4 +136,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField' 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Debug Toolbar settings
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+    'SHOW_TEMPLATE_CONTEXT': True,
+    'ENABLE_STACKTRACES': True,
+    'SQL_WARNING_THRESHOLD': 500,  # milliseconds
+    'SHOW_COLLAPSED': True,
+} 

@@ -9,7 +9,7 @@ from strawberry.django.context import StrawberryDjangoContext
 from posts.schemas.schema import schema
 from django.contrib.auth import get_user
 from asgiref.sync import sync_to_async
-
+from debug_toolbar.toolbar import debug_toolbar_urls
 
 class MyGraphQLView(AsyncGraphQLView):
     async def get_context(self, request, response) :
@@ -20,4 +20,4 @@ class MyGraphQLView(AsyncGraphQLView):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('graphql/', csrf_exempt(MyGraphQLView.as_view(schema=schema, multipart_uploads_enabled=True))),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) 
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + debug_toolbar_urls()

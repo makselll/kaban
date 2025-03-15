@@ -8,3 +8,5 @@ django-cors-headers
 uvicorn[standard]
 strawberry-graphql-django
 starlette
+django-debug-toolbar
+django-graphiql-strawberry-debug-toolbar
