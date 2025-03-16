@@ -14,18 +14,84 @@ import {
   Tab,
   Box,
 } from '@mui/material';
+import { gql, useQuery, useMutation } from '@apollo/client';
+
+const GET_FOLLOWERS = gql`
+  query {
+    followers {
+      id
+      avatar
+      user {
+        id
+        username
+      }
+
+    },
+    following {
+      id
+      avatar
+      user {
+        id
+        username
+      }
+    }
+  }
+`;
+
+const FOLLOW_PROFILE = gql`
+  mutation followProfile($id: ID!) {
+    follow(id: $id)
+  }
+`;
+
+const UNFOLLOW_PROFILE = gql`
+  mutation unfollowProfile($id: ID!) {
+    unfollow(id: $id)
+  }
+`;
 
 const FollowingList = () => {
   const [tabValue, setTabValue] = useState(0);
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
+  const [followProfile, { follow_loading }] = useMutation(FOLLOW_PROFILE);
+  const [unfollowProfile, { unfollow_loading }] = useMutation(UNFOLLOW_PROFILE);
+  const { loading, error, data } = useQuery(GET_FOLLOWERS);
+
+  useEffect(() => {
+    if (data) {
+      setFollowers(data.followers);
+      setFollowing(data.following);
+    }
+  }, [data]);
+
+  if (loading) return <Typography>Loading...</Typography>;
+  if (error) return <Typography>Error: {error.message}</Typography>;
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
   const handleFollowToggle = async (userId) => {
-    // GraphQL mutation will be implemented here
+    try {
+      await followProfile({
+        variables: { id: userId },
+        refetchQueries: [{ query: GET_FOLLOWERS }]
+      });
+    } catch (error) {
+      console.error('Error following user:', error);
+    }
+  };
+
+  const handleUnfollowToggle = async (userId) => {
+    try {
+      await unfollowProfile({
+        variables: { id: userId },
+        refetchQueries: [{ query: GET_FOLLOWERS }]
+      });
+    } catch (error) {
+      console.error('Error unfollowing user:', error);
+    }
   };
 
   const TabPanel = (props) => {
@@ -65,8 +131,8 @@ const FollowingList = () => {
                   <Avatar src={follower.avatar} />
                 </ListItemAvatar>
                 <ListItemText
-                  primary={follower.username}
-                  secondary={follower.bio}
+                  primary={follower.user.username}
+                  secondary={follower.user.bio}
                 />
                 <ListItemSecondaryAction>
                   <Button
@@ -90,14 +156,14 @@ const FollowingList = () => {
                   <Avatar src={followed.avatar} />
                 </ListItemAvatar>
                 <ListItemText
-                  primary={followed.username}
-                  secondary={followed.bio}
+                  primary={followed.user.username}
+                  secondary={followed.user.bio}
                 />
                 <ListItemSecondaryAction>
                   <Button
                     variant="outlined"
                     color="secondary"
-                    onClick={() => handleFollowToggle(followed.id)}
+                    onClick={() => handleUnfollowToggle(followed.id)}
                   >
                     Unfollow
                   </Button>

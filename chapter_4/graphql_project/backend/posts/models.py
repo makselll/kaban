@@ -7,7 +7,7 @@ class Post(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     image = models.ImageField(upload_to='posts/')
-    profile = models.ForeignKey("UserProfile", on_delete=models.CASCADE)
+    profile = models.ForeignKey("UserProfile", on_delete=models.CASCADE, related_name='posts')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -50,4 +50,4 @@ class Follow(models.Model):
         unique_together = ('follower', 'following')
 
     def __str__(self):
-        return f"{self.follower.username} follows {self.following.username}" 
+        return f"{self.follower} follows {self.following}" 

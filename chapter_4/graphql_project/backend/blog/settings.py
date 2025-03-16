@@ -25,12 +25,14 @@ INSTALLED_APPS = [
     "strawberry_django",
 ]
 
-SESSION_COOKIE_DOMAIN = "localhost"
+SESSION_COOKIE_DOMAIN = None
 SESSION_COOKIE_PATH = "/"
-SESSION_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = False
+CSRF_USE_SESSIONS = True
+CSRF_COOKIE_HTTPONLY = False
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
@@ -65,10 +67,32 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://localhost:8000",
     "http://0.0.0.0:3000",
+    "http://0.0.0.0:8000",
 ]
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://\d+\.\d+\.\d+\.\d+:3000$",
+    r"^http://\d+\.\d+\.\d+\.\d+:8000$",
+]
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
 
@@ -146,3 +170,13 @@ DEBUG_TOOLBAR_CONFIG = {
     'SQL_WARNING_THRESHOLD': 500,  # milliseconds
     'SHOW_COLLAPSED': True,
 } 
+
+TRUSTED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:8000',
+    'http://0.0.0.0:3000',
+    'http://0.0.0.0:8000'
+]
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10000000

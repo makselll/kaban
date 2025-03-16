@@ -42,9 +42,7 @@ const GET_CURRENT_USER = gql`
         id
         username
       }
-      avatar {
-        path
-      }
+      avatar
       bio
     }
   }

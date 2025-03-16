@@ -12,9 +12,7 @@ const GET_POSTS = gql`
       image
       profile {
         id
-        avatar {
-          path
-        }
+        avatar
         user {
           id
           username

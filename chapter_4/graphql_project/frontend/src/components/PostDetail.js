@@ -38,9 +38,7 @@ const GET_POST = gql`
           username
           id
         }
-        avatar {
-          path
-        }
+        avatar
       }
       comments {
         id
