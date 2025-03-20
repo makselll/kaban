@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { gql, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
+import heic2any from 'heic2any';
 import {
   Paper,
   TextField,
@@ -8,6 +9,7 @@ import {
   Typography,
   Box,
   Alert,
+  CircularProgress,
 } from '@mui/material';
 
 const CREATE_POST = gql`
@@ -34,9 +36,65 @@ function CreatePost() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [error, setError] = useState('');
+  const [isConverting, setIsConverting] = useState(false);
 
   const [createPost, { loading }] = useMutation(CREATE_POST);
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Проверяем размер файла (например, максимум 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size should not exceed 5MB');
+        return;
+      }
+
+      // Проверяем тип файла и расширение
+      if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic')) {
+        setError('HEIC format is not supported. Please convert your image to JPEG or PNG before uploading.');
+        return;
+      }
+
+      // Проверяем что это изображение
+      if (!file.type.startsWith('image/')) {
+        setError('Please upload an image file');
+        return;
+      }
+
+      try {
+        setImage(file);
+
+        // Создаем FileReader для безопасного чтения файла
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setImagePreview(e.target.result);
+          setError(''); // Очищаем ошибку при успешной загрузке
+        };
+        reader.onerror = () => {
+          setError('Error reading the image file');
+          setImagePreview(null);
+        };
+        reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('Error processing image:', err);
+        setError('Error processing image. Please try another format.');
+        setImage(null);
+        setImagePreview(null);
+      }
+    }
+  };
+
+  // Очищаем ресурсы при размонтировании
+  useEffect(() => {
+    return () => {
+      if (image) {
+        setImage(null);
+        setImagePreview(null);
+      }
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,13 +105,15 @@ function CreatePost() {
     }
 
     try {
-      const formData = new FormData();
-      formData.append('title', title);
-      formData.append('content', content);
-      formData.append('image', image);
-
       const { data } = await createPost({
-        variables: { title, content, image }, // Передаем image напрямую
+        variables: { 
+          title, 
+          content, 
+          image: image // Передаем файл напрямую
+        },
+        context: {
+          hasUpload: true, // Важный флаг для Apollo Client
+        }
       });
 
       if (data?.createPost?.errors?.length) {
@@ -101,30 +161,108 @@ function CreatePost() {
         />
 
         <input
-          accept="image/*"
+          accept="image/jpeg,image/png,image/gif,image/webp"
           type="file"
-          onChange={(e) => setImage(e.target.files[0])}
+          onChange={handleImageChange}
           style={{ display: 'none' }}
           id="image-upload"
         />
-        <label htmlFor="image-upload">
-          <Button variant="outlined" component="span" sx={{ mb: 2 }}>
-            Upload Image
-          </Button>
-        </label>
-
-        {image && (
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            Selected file: {image.name}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
+          <label htmlFor="image-upload">
+            <Button 
+              variant="outlined" 
+              component="span" 
+              fullWidth
+              sx={{ 
+                height: '56px',
+                borderRadius: '4px',
+                textTransform: 'none',
+                fontSize: '1rem'
+              }}
+            >
+              Upload Image
+            </Button>
+          </label>
+          <Typography variant="caption" color="text.secondary">
+            Supported formats: JPEG, PNG, GIF, WebP
           </Typography>
-        )}
+
+          {image && (
+            <>
+              <Typography variant="body2" color="text.secondary">
+                Selected file: {image.name}
+              </Typography>
+              <Box 
+                sx={{ 
+                  mt: 2, 
+                  width: '100%', 
+                  height: '300px', 
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  border: '1px solid #e0e0e0',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: '#f5f5f5',
+                  position: 'relative'
+                }}
+              >
+                {isConverting && (
+                  <Box sx={{ 
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    zIndex: 1
+                  }}>
+                    <CircularProgress />
+                  </Box>
+                )}
+                {imagePreview && (
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      objectFit: 'contain',
+                      display: 'block'
+                    }}
+                    onError={() => {
+                      setError('Error displaying image preview');
+                      setImagePreview(null);
+                    }}
+                  />
+                )}
+                {!imagePreview && error && (
+                  <Typography color="error" variant="body2">
+                    {error}
+                  </Typography>
+                )}
+              </Box>
+            </>
+          )}
+        </Box>
 
         <Button
           type="submit"
           variant="contained"
           color="primary"
           size="large"
-          disabled={loading || !title || !content || !image}
+          fullWidth
+          disabled={loading || isConverting || !title || !content || !image}
+          sx={{ 
+            height: '56px',
+            borderRadius: '4px',
+            textTransform: 'none',
+            fontSize: '1rem',
+            fontWeight: 500
+          }}
         >
           {loading ? 'Submitting...' : 'Create Post'}
         </Button>

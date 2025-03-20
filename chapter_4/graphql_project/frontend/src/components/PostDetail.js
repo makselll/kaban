@@ -234,7 +234,7 @@ function PostDetail() {
           <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
             <Box display="flex" alignItems="center" gap={2}>
               <Avatar
-                src={'http://0.0.0.0:8000/media/' + post.profile.avatar?.path}
+                src={'http://0.0.0.0:8000/media/' + post.profile.avatar}
                 alt={post.profile.user.username}
                 sx={{ width: 40, height: 40 }}
               />

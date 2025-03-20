@@ -3,8 +3,9 @@ import strawberry_django
 from strawberry import auto
 from django.contrib.auth import get_user_model
 from typing import List
-from posts.models import UserProfile
+from posts.models import UserProfile, Follow
 from strawberry_django.permissions import IsAuthenticated
+
 
 @strawberry_django.type(get_user_model())
 class UserType:
@@ -62,7 +63,7 @@ class ProfileQuery:
     
     @strawberry_django.field(name="followers", extensions=[IsAuthenticated()])
     def resolve_followers(self, info) -> List[UserProfileType]:
-        return UserProfile.objects.filter(following__follower=info.context["request"].user.profile).exclude(user=info.context["request"].user)
+        return UserProfile.objects.filter(following__following=info.context["request"].user.profile)
     
     @strawberry_django.field(name="following", extensions=[IsAuthenticated()])
     def resolve_following(self, info) -> List[UserProfileType]:

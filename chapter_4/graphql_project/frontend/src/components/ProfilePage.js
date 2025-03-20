@@ -10,6 +10,7 @@ import {
   Avatar,
   Box,
   Divider,
+  Alert,
 } from '@mui/material';
 import { useQuery, useMutation } from '@apollo/client';
 import { gql } from '@apollo/client';
@@ -50,10 +51,11 @@ const ProfilePage = () => {
     dateOfBirth: '',
     location: '',
   });
+  const [error, setError] = useState('');
   const [updateProfile] = useMutation(UPDATE_PROFILE);
   const [updateAvatar] = useMutation(UPDATE_AVATAR);
 
-  const { data, loading, error } = useQuery(GET_CURRENT_USER);
+  const { data, loading, error: queryError } = useQuery(GET_CURRENT_USER);
 
   useEffect(() => {
     if (data) {
@@ -67,7 +69,7 @@ const ProfilePage = () => {
   }, [data]);
 
   if (loading) return <Typography>Loading...</Typography>;
-  if (error) return <Typography>Error: {error.message}</Typography>;
+  if (queryError) return <Typography>Error: {queryError.message}</Typography>;
   
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
@@ -95,22 +97,47 @@ const ProfilePage = () => {
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Проверяем размер файла (максимум 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Avatar size should not exceed 5MB');
+        return;
+      }
+
+      // Проверяем формат файла
+      if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic')) {
+        setError('HEIC format is not supported. Please convert your image to JPEG or PNG before uploading.');
+        return;
+      }
+
+      // Проверяем что это изображение
+      if (!file.type.startsWith('image/')) {
+        setError('Please upload an image file');
+        return;
+      }
+
       try {
-          await updateAvatar({
-            variables: {
-              avatar: file,
-            },
-            refetchQueries: [{ query: GET_CURRENT_USER }]
-          });
-        } catch (error) {
-          console.error('Error updating avatar:', error);
-        }
+        await updateAvatar({
+          variables: {
+            avatar: file,
+          },
+          refetchQueries: [{ query: GET_CURRENT_USER }]
+        });
+        setError('');
+      } catch (error) {
+        console.error('Error updating avatar:', error);
+        setError('Failed to update avatar. Please try again.');
+      }
     }
   };
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Paper elevation={3} sx={{ p: 3 }}>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
             <Box display="flex" flexDirection="column" alignItems="center">
@@ -127,10 +154,13 @@ const ProfilePage = () => {
                 <input
                   type="file"
                   hidden
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
                   onChange={handleAvatarChange}
                 />
               </Button>
+              <Typography variant="caption" color="text.secondary">
+                Supported formats: JPEG, PNG, GIF, WebP
+              </Typography>
             </Box>
           </Grid>
           <Grid item xs={12} md={8}>

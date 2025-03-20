@@ -23,7 +23,7 @@ const LOGOUT_MUTATION = gql`
 
 const REGISTER_MUTATION = gql`
   mutation Register($email: String!, $username: String!, $password: String!, $password2: String!) {
-    register(email: $email, username: $username, password: $password, password2: $password2) {
+    register(input: {email: $email, username: $username, password: $password, password2: $password2}) {
       id
       user {
         id
@@ -57,6 +57,7 @@ export const AuthProvider = ({ children }) => {
   const { data: userData, loading } = useQuery(GET_CURRENT_USER);
 
   useEffect(() => {
+    console.log("userData >", userData);
     if (userData?.me) {
       setUser(userData.me);
       setIsAuthenticated(true);
@@ -73,12 +74,13 @@ export const AuthProvider = ({ children }) => {
         variables: {
           username,
           password
-        }
+        },
       });
       if (errors) {
         throw new Error(errors[0].message);
       }
       setIsAuthenticated(true);
+      setUser(data.login);
       return data.login.id;
     } catch (error) {
       console.error('Login error:', error);
@@ -111,8 +113,12 @@ export const AuthProvider = ({ children }) => {
           password2
         }
       });
-      setIsAuthenticated(true);
-      return { success: true, data: data.profile.id };
+      if (data.register) {
+        setIsAuthenticated(true);
+        setUser(data.register);
+        return { success: true, data: data.register.id };
+      }
+      return { success: false, error: 'Registration failed. Please try again.' };
     } catch (error) {
       console.error('Register error:', error);
       return { 
